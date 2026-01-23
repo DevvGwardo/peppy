@@ -13,6 +13,7 @@ try:
     import tree_sitter_rust
     import tree_sitter_java
     from tree_sitter import Language, Parser, Node
+
     TREE_SITTER_AVAILABLE = True
 except ImportError:
     TREE_SITTER_AVAILABLE = False
@@ -93,23 +94,75 @@ class CodeParser:
             return
 
         # Initialize parsers for each language
-        language_map = {
-            "python": tree_sitter_python,
-            "javascript": tree_sitter_javascript,
-            "typescript": tree_sitter_typescript,
-            "go": tree_sitter_go,
-            "rust": tree_sitter_rust,
-            "java": tree_sitter_java,
-        }
+        try:
+            # Python
+            if hasattr(tree_sitter_python, "language"):
+                language = Language(tree_sitter_python.language())
+            else:
+                language = Language(tree_sitter_python)
+            self.languages["python"] = language
+            self.parsers["python"] = Parser(language)
+        except Exception as e:
+            print(f"Warning: Failed to initialize Python parser: {e}")
 
-        for lang_name, lang_module in language_map.items():
-            try:
-                language = Language(lang_module.language())
-                parser = Parser(language)
-                self.languages[lang_name] = language
-                self.parsers[lang_name] = parser
-            except Exception as e:
-                print(f"Warning: Failed to initialize {lang_name} parser: {e}")
+        try:
+            # JavaScript
+            if hasattr(tree_sitter_javascript, "language"):
+                language = Language(tree_sitter_javascript.language())
+            else:
+                language = Language(tree_sitter_javascript)
+            self.languages["javascript"] = language
+            self.parsers["javascript"] = Parser(language)
+        except Exception as e:
+            print(f"Warning: Failed to initialize JavaScript parser: {e}")
+
+        try:
+            # TypeScript
+            if hasattr(tree_sitter_typescript, "language_typescript"):
+                language = Language(tree_sitter_typescript.language_typescript())
+            elif hasattr(tree_sitter_typescript, "language_tsx"):
+                language = Language(tree_sitter_typescript.language_tsx())
+            elif hasattr(tree_sitter_typescript, "language"):
+                language = Language(tree_sitter_typescript.language())
+            else:
+                language = Language(tree_sitter_typescript)
+            self.languages["typescript"] = language
+            self.parsers["typescript"] = Parser(language)
+        except Exception as e:
+            print(f"Warning: Failed to initialize TypeScript parser: {e}")
+
+        try:
+            # Go
+            if hasattr(tree_sitter_go, "language"):
+                language = Language(tree_sitter_go.language())
+            else:
+                language = Language(tree_sitter_go)
+            self.languages["go"] = language
+            self.parsers["go"] = Parser(language)
+        except Exception as e:
+            print(f"Warning: Failed to initialize Go parser: {e}")
+
+        try:
+            # Rust
+            if hasattr(tree_sitter_rust, "language"):
+                language = Language(tree_sitter_rust.language())
+            else:
+                language = Language(tree_sitter_rust)
+            self.languages["rust"] = language
+            self.parsers["rust"] = Parser(language)
+        except Exception as e:
+            print(f"Warning: Failed to initialize Rust parser: {e}")
+
+        try:
+            # Java
+            if hasattr(tree_sitter_java, "language"):
+                language = Language(tree_sitter_java.language())
+            else:
+                language = Language(tree_sitter_java)
+            self.languages["java"] = language
+            self.parsers["java"] = Parser(language)
+        except Exception as e:
+            print(f"Warning: Failed to initialize Java parser: {e}")
 
     def get_language_from_extension(self, file_path: str) -> Optional[str]:
         """Determine the language from file extension.
@@ -152,7 +205,9 @@ class CodeParser:
             print(f"Warning: Failed to parse {file_path}: {e}")
             return self._parse_file_fallback(file_path)
 
-    def _extract_symbols(self, root_node: 'Node', code: str, file_path: str, language: str) -> List[Symbol]:
+    def _extract_symbols(
+        self, root_node: "Node", code: str, file_path: str, language: str
+    ) -> List[Symbol]:
         """Extract symbols from a tree-sitter AST.
 
         Args:
@@ -167,28 +222,45 @@ class CodeParser:
         symbols = []
 
         # Walk the tree and extract symbols
-        def walk_tree(node: 'Node', parent_type: Optional[str] = None):
+        def walk_tree(node: "Node", parent_type: Optional[str] = None):
             node_type = node.type
 
             # Check for function definitions
-            if node_type in ['function_definition', 'function_declaration', 'function_item', 'method_declaration', 'method_definition']:
+            if node_type in [
+                "function_definition",
+                "function_declaration",
+                "function_item",
+                "method_declaration",
+                "method_definition",
+            ]:
                 name_node = self._find_name_node(node)
                 if name_node:
-                    symbol_type = 'method' if parent_type == 'class' else 'function'
+                    symbol_type = "method" if parent_type == "class" else "function"
                     symbols.append(self._create_symbol(name_node, symbol_type, file_path, code))
 
             # Check for class definitions
-            elif node_type in ['class_definition', 'class_declaration', 'struct_item', 'enum_item']:
+            elif node_type in [
+                "class_definition",
+                "class_declaration",
+                "struct_item",
+                "enum_item",
+                "type_declaration",
+            ]:
                 name_node = self._find_name_node(node)
                 if name_node:
-                    symbols.append(self._create_symbol(name_node, 'class', file_path, code))
-                    parent_type = 'class'
+                    symbol_type = "class"
+                    symbols.append(self._create_symbol(name_node, symbol_type, file_path, code))
+                    parent_type = "class"
 
             # Check for interface/type definitions
-            elif node_type in ['interface_declaration', 'type_alias_declaration']:
+            elif node_type == "interface_declaration":
                 name_node = self._find_name_node(node)
                 if name_node:
-                    symbols.append(self._create_symbol(name_node, 'interface', file_path, code))
+                    symbols.append(self._create_symbol(name_node, "interface", file_path, code))
+            elif node_type == "type_alias_declaration":
+                name_node = self._find_name_node(node)
+                if name_node:
+                    symbols.append(self._create_symbol(name_node, "type", file_path, code))
 
             # Recurse into children
             for child in node.children:
@@ -197,33 +269,48 @@ class CodeParser:
         walk_tree(root_node)
         return symbols
 
-    def _find_name_node(self, node: 'Node') -> Optional['Node']:
+    def _find_name_node(self, node: "Node") -> Optional["Node"]:
         """Find the name node within a definition node."""
+        # For Go method declarations, find the method name (first field_identifier after func)
+        if node.type == "method_declaration":
+            field_identifiers = [c for c in node.children if c.type == "field_identifier"]
+            if len(field_identifiers) >= 1:
+                return field_identifiers[0]
+
+        # For Go type declarations, find the type_identifier in the type_spec child
+        if node.type == "type_declaration":
+            for child in node.children:
+                if child.type == "type_spec":
+                    for grandchild in child.children:
+                        if grandchild.type == "type_identifier":
+                            return grandchild
+
         for child in node.children:
-            if child.type in ['identifier', 'type_identifier', 'property_identifier', 'field_identifier']:
+            # Stop at the first matching identifier/name node found
+            if child.type in [
+                "identifier",
+                "type_identifier",
+                "property_identifier",
+                "field_identifier",
+            ]:
                 return child
-            # Recursively search in named children
-            if child.is_named:
-                result = self._find_name_node(child)
-                if result:
-                    return result
         return None
 
-    def _create_symbol(self, node: 'Node', symbol_type: str, file_path: str, code: str) -> Symbol:
+    def _create_symbol(self, node: "Node", symbol_type: str, file_path: str, code: str) -> Symbol:
         """Create a Symbol object from a tree-sitter node."""
         start_point = node.start_point
         end_point = node.end_point
-        name = code[node.start_byte:node.end_byte]
+        name = code[node.start_byte : node.end_byte]
 
         return Symbol(
             name=name,
             type=symbol_type,
             file_path=file_path,
-            line=start_point[0] + 1,  # Convert to 1-indexed
+            line=start_point[0] + 1,
             column=start_point[1],
             end_line=end_point[0] + 1,
             end_column=end_point[1],
-            context=None
+            context=None,
         )
 
     def _parse_file_fallback(self, file_path: str) -> List[Symbol]:
@@ -251,30 +338,34 @@ class CodeParser:
                 # Simple regex for Python functions and classes
                 for i, line in enumerate(lines):
                     # Match function definitions
-                    match = re.match(r'^\s*def\s+(\w+)\s*\(', line)
+                    match = re.match(r"^\s*def\s+(\w+)\s*\(", line)
                     if match:
-                        symbols.append(Symbol(
-                            name=match.group(1),
-                            type='function',
-                            file_path=file_path,
-                            line=i + 1,
-                            column=match.start(1),
-                            end_line=i + 1,
-                            end_column=match.end(1)
-                        ))
+                        symbols.append(
+                            Symbol(
+                                name=match.group(1),
+                                type="function",
+                                file_path=file_path,
+                                line=i + 1,
+                                column=match.start(1),
+                                end_line=i + 1,
+                                end_column=match.end(1),
+                            )
+                        )
 
                     # Match class definitions
-                    match = re.match(r'^\s*class\s+(\w+)', line)
+                    match = re.match(r"^\s*class\s+(\w+)", line)
                     if match:
-                        symbols.append(Symbol(
-                            name=match.group(1),
-                            type='class',
-                            file_path=file_path,
-                            line=i + 1,
-                            column=match.start(1),
-                            end_line=i + 1,
-                            end_column=match.end(1)
-                        ))
+                        symbols.append(
+                            Symbol(
+                                name=match.group(1),
+                                type="class",
+                                file_path=file_path,
+                                line=i + 1,
+                                column=match.start(1),
+                                end_line=i + 1,
+                                end_column=match.end(1),
+                            )
+                        )
 
         except Exception as e:
             print(f"Warning: Fallback parsing failed for {file_path}: {e}")

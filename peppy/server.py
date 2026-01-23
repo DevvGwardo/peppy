@@ -37,16 +37,16 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "path": {
                         "type": "string",
-                        "description": "Absolute path to the codebase root directory"
+                        "description": "Absolute path to the codebase root directory",
                     },
                     "force_reindex": {
                         "type": "boolean",
                         "description": "Force re-indexing even if cache exists",
-                        "default": False
-                    }
+                        "default": False,
+                    },
                 },
-                "required": ["path"]
-            }
+                "required": ["path"],
+            },
         ),
         Tool(
             name="search_symbols",
@@ -56,29 +56,26 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "codebase_path": {
                         "type": "string",
-                        "description": "Path to the indexed codebase root"
+                        "description": "Path to the indexed codebase root",
                     },
-                    "query": {
-                        "type": "string",
-                        "description": "Search query (supports regex)"
-                    },
+                    "query": {"type": "string", "description": "Search query (supports regex)"},
                     "symbol_type": {
                         "type": "string",
                         "description": "Filter by symbol type",
-                        "enum": ["function", "class", "method", "variable", "interface", "type"]
+                        "enum": ["function", "class", "method", "variable", "interface", "type"],
                     },
                     "file_pattern": {
                         "type": "string",
-                        "description": "File pattern to filter (e.g., '*.py', '**/*.js')"
+                        "description": "File pattern to filter (e.g., '*.py', '**/*.js')",
                     },
                     "use_regex": {
                         "type": "boolean",
                         "description": "Treat query as regex pattern",
-                        "default": True
-                    }
+                        "default": True,
+                    },
                 },
-                "required": ["codebase_path", "query"]
-            }
+                "required": ["codebase_path", "query"],
+            },
         ),
         Tool(
             name="grep_code",
@@ -88,38 +85,35 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "codebase_path": {
                         "type": "string",
-                        "description": "Path to the indexed codebase root"
+                        "description": "Path to the indexed codebase root",
                     },
-                    "pattern": {
-                        "type": "string",
-                        "description": "Search pattern (supports regex)"
-                    },
+                    "pattern": {"type": "string", "description": "Search pattern (supports regex)"},
                     "file_pattern": {
                         "type": "string",
-                        "description": "File pattern to filter (e.g., '*.py')"
+                        "description": "File pattern to filter (e.g., '*.py')",
                     },
                     "context_lines": {
                         "type": "integer",
                         "description": "Number of context lines to show before/after match",
                         "default": 0,
                         "minimum": 0,
-                        "maximum": 10
+                        "maximum": 10,
                     },
                     "use_regex": {
                         "type": "boolean",
                         "description": "Treat pattern as regex",
-                        "default": True
+                        "default": True,
                     },
                     "max_results": {
                         "type": "integer",
                         "description": "Maximum number of results to return",
                         "default": 100,
                         "minimum": 1,
-                        "maximum": 1000
-                    }
+                        "maximum": 1000,
+                    },
                 },
-                "required": ["codebase_path", "pattern"]
-            }
+                "required": ["codebase_path", "pattern"],
+            },
         ),
         Tool(
             name="get_file_symbols",
@@ -129,15 +123,15 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "codebase_path": {
                         "type": "string",
-                        "description": "Path to the indexed codebase root"
+                        "description": "Path to the indexed codebase root",
                     },
                     "file_path": {
                         "type": "string",
-                        "description": "Path to the file (absolute or relative to codebase)"
-                    }
+                        "description": "Path to the file (absolute or relative to codebase)",
+                    },
                 },
-                "required": ["codebase_path", "file_path"]
-            }
+                "required": ["codebase_path", "file_path"],
+            },
         ),
         Tool(
             name="get_statistics",
@@ -147,11 +141,11 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "codebase_path": {
                         "type": "string",
-                        "description": "Path to the indexed codebase root"
+                        "description": "Path to the indexed codebase root",
                     }
                 },
-                "required": ["codebase_path"]
-            }
+                "required": ["codebase_path"],
+            },
         ),
         Tool(
             name="clear_cache",
@@ -161,10 +155,10 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "codebase_path": {
                         "type": "string",
-                        "description": "Path to codebase (omit to clear all caches)"
+                        "description": "Path to codebase (omit to clear all caches)",
                     }
-                }
-            }
+                },
+            },
         ),
     ]
 
@@ -180,14 +174,14 @@ async def list_prompts() -> list[Prompt]:
                 PromptArgument(
                     name="codebase_path",
                     description="Path to the codebase root directory",
-                    required=True
+                    required=True,
                 ),
                 PromptArgument(
                     name="focus_patterns",
                     description="Comma-separated patterns to focus research on (optional)",
-                    required=False
+                    required=False,
                 ),
-            ]
+            ],
         ),
         Prompt(
             name="peppy-execution",
@@ -196,14 +190,14 @@ async def list_prompts() -> list[Prompt]:
                 PromptArgument(
                     name="codebase_path",
                     description="Path to the codebase root directory",
-                    required=True
+                    required=True,
                 ),
                 PromptArgument(
                     name="target",
                     description="Symbol or pattern to find for making changes",
-                    required=True
+                    required=True,
                 ),
-            ]
+            ],
         ),
         Prompt(
             name="peppy-verification",
@@ -212,14 +206,14 @@ async def list_prompts() -> list[Prompt]:
                 PromptArgument(
                     name="codebase_path",
                     description="Path to the codebase root directory",
-                    required=True
+                    required=True,
                 ),
                 PromptArgument(
                     name="expected_symbols",
                     description="Comma-separated list of symbol names that should exist",
-                    required=False
+                    required=False,
                 ),
-            ]
+            ],
         ),
         Prompt(
             name="peppy-overview",
@@ -228,9 +222,9 @@ async def list_prompts() -> list[Prompt]:
                 PromptArgument(
                     name="codebase_path",
                     description="Path to the codebase root directory",
-                    required=True
+                    required=True,
                 ),
-            ]
+            ],
         ),
     ]
 
@@ -247,7 +241,9 @@ async def get_prompt(name: str, arguments: dict[str, str] | None) -> GetPromptRe
         focus_patterns = arguments.get("focus_patterns", "")
 
         # Parse focus patterns
-        patterns = [p.strip() for p in focus_patterns.split(",") if p.strip()] if focus_patterns else None
+        patterns = (
+            [p.strip() for p in focus_patterns.split(",") if p.strip()] if focus_patterns else None
+        )
 
         # Ensure indexed
         if not interface.is_indexed(codebase_path):
@@ -263,16 +259,16 @@ async def get_prompt(name: str, arguments: dict[str, str] | None) -> GetPromptRe
                     content=TextContent(
                         type="text",
                         text=f"# Peppy Planning Context\n\n"
-                             f"Use this information to create your PROMPT.md:\n\n"
-                             f"```json\n{json.dumps(result, indent=2)}\n```\n\n"
-                             f"## Key Points:\n"
-                             f"- Total files: {result['overview'].get('total_files', 'N/A')}\n"
-                             f"- Total symbols: {result['overview'].get('total_symbols', 'N/A')}\n"
-                             f"- Key classes: {len(result['key_classes'])}\n"
-                             f"- Entry points found: {len(result['key_functions'])}"
-                    )
+                        f"Use this information to create your PROMPT.md:\n\n"
+                        f"```json\n{json.dumps(result, indent=2)}\n```\n\n"
+                        f"## Key Points:\n"
+                        f"- Total files: {result['overview'].get('total_files', 'N/A')}\n"
+                        f"- Total symbols: {result['overview'].get('total_symbols', 'N/A')}\n"
+                        f"- Key classes: {len(result['key_classes'])}\n"
+                        f"- Entry points found: {len(result['key_functions'])}",
+                    ),
                 )
-            ]
+            ],
         )
 
     elif name == "peppy-execution":
@@ -285,9 +281,11 @@ async def get_prompt(name: str, arguments: dict[str, str] | None) -> GetPromptRe
                 messages=[
                     PromptMessage(
                         role="user",
-                        content=TextContent(type="text", text="Error: 'target' argument is required")
+                        content=TextContent(
+                            type="text", text="Error: 'target' argument is required"
+                        ),
                     )
-                ]
+                ],
             )
 
         # Ensure indexed
@@ -296,7 +294,11 @@ async def get_prompt(name: str, arguments: dict[str, str] | None) -> GetPromptRe
 
         result = interface.for_execution(target, codebase_path)
 
-        definition_loc = result['definition']['file'] + ':' + str(result['definition']['line']) if result['definition'] else 'Not found'
+        definition_loc = (
+            result["definition"]["file"] + ":" + str(result["definition"]["line"])
+            if result["definition"]
+            else "Not found"
+        )
 
         return GetPromptResult(
             description=f"Execution context for {target}",
@@ -306,12 +308,12 @@ async def get_prompt(name: str, arguments: dict[str, str] | None) -> GetPromptRe
                     content=TextContent(
                         type="text",
                         text=f"# Peppy Execution Context: {target}\n\n"
-                             f"**Definition:** {definition_loc}\n"
-                             f"**Usage count:** {result['usage_count']}\n\n"
-                             f"```json\n{json.dumps(result, indent=2)}\n```"
-                    )
+                        f"**Definition:** {definition_loc}\n"
+                        f"**Usage count:** {result['usage_count']}\n\n"
+                        f"```json\n{json.dumps(result, indent=2)}\n```",
+                    ),
                 )
-            ]
+            ],
         )
 
     elif name == "peppy-verification":
@@ -319,7 +321,11 @@ async def get_prompt(name: str, arguments: dict[str, str] | None) -> GetPromptRe
         expected_symbols = arguments.get("expected_symbols", "")
 
         # Parse expected symbols
-        symbols = [s.strip() for s in expected_symbols.split(",") if s.strip()] if expected_symbols else None
+        symbols = (
+            [s.strip() for s in expected_symbols.split(",") if s.strip()]
+            if expected_symbols
+            else None
+        )
 
         # Ensure indexed - force reindex for verification to get fresh data
         interface.index(codebase_path, force=True)
@@ -331,9 +337,9 @@ async def get_prompt(name: str, arguments: dict[str, str] | None) -> GetPromptRe
 
         if symbols:
             summary_lines.append("## Symbol Verification:")
-            for symbol, info in result['verification_results'].items():
-                status = "✓" if info['found'] else "✗"
-                location = info['location'] or "Not found"
+            for symbol, info in result["verification_results"].items():
+                status = "✓" if info["found"] else "✗"
+                location = info["location"] or "Not found"
                 summary_lines.append(f"  {status} {symbol}: {location}")
 
         summary_lines.append(f"\n## Codebase Stats:")
@@ -344,10 +350,9 @@ async def get_prompt(name: str, arguments: dict[str, str] | None) -> GetPromptRe
             description="Verification results",
             messages=[
                 PromptMessage(
-                    role="user",
-                    content=TextContent(type="text", text="\n".join(summary_lines))
+                    role="user", content=TextContent(type="text", text="\n".join(summary_lines))
                 )
-            ]
+            ],
         )
 
     elif name == "peppy-overview":
@@ -361,12 +366,7 @@ async def get_prompt(name: str, arguments: dict[str, str] | None) -> GetPromptRe
 
         return GetPromptResult(
             description="Codebase overview",
-            messages=[
-                PromptMessage(
-                    role="user",
-                    content=TextContent(type="text", text=overview)
-                )
-            ]
+            messages=[PromptMessage(role="user", content=TextContent(type="text", text=overview))],
         )
 
     else:
@@ -374,10 +374,9 @@ async def get_prompt(name: str, arguments: dict[str, str] | None) -> GetPromptRe
             description=f"Unknown prompt: {name}",
             messages=[
                 PromptMessage(
-                    role="user",
-                    content=TextContent(type="text", text=f"Unknown prompt: {name}")
+                    role="user", content=TextContent(type="text", text=f"Unknown prompt: {name}")
                 )
-            ]
+            ],
         )
 
 
@@ -391,32 +390,23 @@ async def call_tool(name: str, arguments: Any) -> Sequence[TextContent]:
             force_reindex = arguments.get("force_reindex", False)
 
             if not path.exists():
-                return [TextContent(
-                    type="text",
-                    text=f"Error: Path does not exist: {path}"
-                )]
+                return [TextContent(type="text", text=f"Error: Path does not exist: {path}")]
 
             if not path.is_dir():
-                return [TextContent(
-                    type="text",
-                    text=f"Error: Path is not a directory: {path}"
-                )]
+                return [TextContent(type="text", text=f"Error: Path is not a directory: {path}")]
 
             # Run indexing (in thread pool to avoid blocking)
             loop = asyncio.get_event_loop()
-            index = await loop.run_in_executor(
-                None,
-                indexer.index_codebase,
-                path,
-                force_reindex
-            )
+            index = await loop.run_in_executor(None, indexer.index_codebase, path, force_reindex)
 
-            return [TextContent(
-                type="text",
-                text=f"Successfully indexed codebase at {path}\n"
-                     f"Total files: {index['total_files']}\n"
-                     f"Total symbols: {index['symbol_count']}"
-            )]
+            return [
+                TextContent(
+                    type="text",
+                    text=f"Successfully indexed codebase at {path}\n"
+                    f"Total files: {index['total_files']}\n"
+                    f"Total symbols: {index['symbol_count']}",
+                )
+            ]
 
         elif name == "search_symbols":
             codebase_path = Path(arguments["codebase_path"])
@@ -430,21 +420,17 @@ async def call_tool(name: str, arguments: Any) -> Sequence[TextContent]:
                 query,
                 symbol_type=symbol_type,
                 file_pattern=file_pattern,
-                use_regex=use_regex
+                use_regex=use_regex,
             )
 
             if not results:
-                return [TextContent(
-                    type="text",
-                    text=f"No symbols found matching '{query}'"
-                )]
+                return [TextContent(type="text", text=f"No symbols found matching '{query}'")]
 
             # Format results
             output_lines = [f"Found {len(results)} symbols matching '{query}':\n"]
             for result in results[:50]:  # Limit to 50 results in output
                 output_lines.append(
-                    f"  {result['type']:10} {result['name']:30} "
-                    f"{result['file']}:{result['line']}"
+                    f"  {result['type']:10} {result['name']:30} {result['file']}:{result['line']}"
                 )
 
             if len(results) > 50:
@@ -466,14 +452,11 @@ async def call_tool(name: str, arguments: Any) -> Sequence[TextContent]:
                 file_pattern=file_pattern,
                 context_lines=context_lines,
                 use_regex=use_regex,
-                max_results=max_results
+                max_results=max_results,
             )
 
             if not results:
-                return [TextContent(
-                    type="text",
-                    text=f"No matches found for pattern '{pattern}'"
-                )]
+                return [TextContent(type="text", text=f"No matches found for pattern '{pattern}'")]
 
             # Format results
             output_lines = [f"Found {len(results)} matches for '{pattern}':\n"]
@@ -504,16 +487,12 @@ async def call_tool(name: str, arguments: Any) -> Sequence[TextContent]:
             symbols = searcher.get_file_symbols(codebase_path, file_path)
 
             if not symbols:
-                return [TextContent(
-                    type="text",
-                    text=f"No symbols found in {file_path}"
-                )]
+                return [TextContent(type="text", text=f"No symbols found in {file_path}")]
 
             output_lines = [f"Symbols in {file_path}:\n"]
             for symbol in symbols:
                 output_lines.append(
-                    f"  {symbol['type']:10} {symbol['name']:30} "
-                    f"line {symbol['line']}"
+                    f"  {symbol['type']:10} {symbol['name']:30} line {symbol['line']}"
                 )
 
             return [TextContent(type="text", text="\n".join(output_lines))]
@@ -524,23 +503,25 @@ async def call_tool(name: str, arguments: Any) -> Sequence[TextContent]:
             stats = searcher.get_statistics(codebase_path)
 
             if not stats:
-                return [TextContent(
-                    type="text",
-                    text=f"No index found for {codebase_path}. Run index_codebase first."
-                )]
+                return [
+                    TextContent(
+                        type="text",
+                        text=f"No index found for {codebase_path}. Run index_codebase first.",
+                    )
+                ]
 
             output_lines = [
                 f"Statistics for {stats['root']}:",
-                f"\nTotal files: {stats['total_files']}",
-                f"Total symbols: {stats['total_symbols']}",
-                "\nSymbols by type:"
+                f"\nFiles: {stats['total_files']}",
+                f"Symbols: {stats['total_symbols']}",
+                "\nSymbols by type:",
             ]
 
-            for sym_type, count in sorted(stats['symbol_types'].items()):
+            for sym_type, count in sorted(stats["symbol_types"].items()):
                 output_lines.append(f"  {sym_type:15} {count:5d}")
 
             output_lines.append("\nFiles by extension:")
-            for ext, count in sorted(stats['file_extensions'].items(), key=lambda x: -x[1])[:10]:
+            for ext, count in sorted(stats["file_extensions"].items(), key=lambda x: -x[1])[:10]:
                 output_lines.append(f"  {ext:15} {count:5d}")
 
             return [TextContent(type="text", text="\n".join(output_lines))]
@@ -550,38 +531,22 @@ async def call_tool(name: str, arguments: Any) -> Sequence[TextContent]:
 
             if codebase_path:
                 cache.clear(Path(codebase_path))
-                return [TextContent(
-                    type="text",
-                    text=f"Cache cleared for {codebase_path}"
-                )]
+                return [TextContent(type="text", text=f"Cache cleared for {codebase_path}")]
             else:
                 cache.clear()
-                return [TextContent(
-                    type="text",
-                    text="All caches cleared"
-                )]
+                return [TextContent(type="text", text="All caches cleared")]
 
         else:
-            return [TextContent(
-                type="text",
-                text=f"Unknown tool: {name}"
-            )]
+            return [TextContent(type="text", text=f"Unknown tool: {name}")]
 
     except Exception as e:
-        return [TextContent(
-            type="text",
-            text=f"Error executing {name}: {str(e)}"
-        )]
+        return [TextContent(type="text", text=f"Error executing {name}: {str(e)}")]
 
 
 async def main():
     """Run the MCP server."""
     async with stdio_server() as (read_stream, write_stream):
-        await app.run(
-            read_stream,
-            write_stream,
-            app.create_initialization_options()
-        )
+        await app.run(read_stream, write_stream, app.create_initialization_options())
 
 
 def run():

@@ -39,7 +39,7 @@ class CodebaseSearcher:
         query: str,
         symbol_type: Optional[str] = None,
         file_pattern: Optional[str] = None,
-        use_regex: bool = True
+        use_regex: bool = True,
     ) -> List[Dict[str, Any]]:
         """Search for symbols in the indexed codebase.
 
@@ -91,21 +91,19 @@ class CodebaseSearcher:
                     matches = query.lower() in name.lower()
 
                 if matches:
-                    results.append({
-                        "name": name,
-                        "type": symbol.get("type"),
-                        "file": file_path,
-                        "line": symbol.get("line"),
-                        "column": symbol.get("column"),
-                    })
+                    results.append(
+                        {
+                            "name": name,
+                            "type": symbol.get("type"),
+                            "file": file_path,
+                            "line": symbol.get("line"),
+                            "column": symbol.get("column"),
+                        }
+                    )
 
         return results
 
-    def get_file_symbols(
-        self,
-        codebase_path: Path,
-        file_path: str
-    ) -> List[Dict[str, Any]]:
+    def get_file_symbols(self, codebase_path: Path, file_path: str) -> List[Dict[str, Any]]:
         """Get all symbols in a specific file.
 
         Args:
@@ -119,11 +117,12 @@ class CodebaseSearcher:
         if not index:
             return []
 
-        # Normalize file path
+        # Normalize both paths for comparison
         file_path = str(Path(file_path).resolve())
 
         for file_info in index.get("files", []):
-            if file_info.get("path") == file_path:
+            cached_path = str(Path(file_info.get("path", "")).resolve())
+            if cached_path == file_path:
                 return [
                     {
                         "name": s.get("name"),
@@ -143,7 +142,7 @@ class CodebaseSearcher:
         file_pattern: Optional[str] = None,
         context_lines: int = 0,
         use_regex: bool = True,
-        max_results: int = 100
+        max_results: int = 100,
     ) -> List[Dict[str, Any]]:
         """Perform grep search across the codebase.
 
@@ -206,25 +205,27 @@ class CodebaseSearcher:
 
                         context = {
                             "before": [
-                                {"line": start_line + j + 1, "content": lines[start_line + j].rstrip()}
+                                {
+                                    "line": start_line + j + 1,
+                                    "content": lines[start_line + j].rstrip(),
+                                }
                                 for j in range(i - start_line)
                             ],
-                            "match": {
-                                "line": i + 1,
-                                "content": line.rstrip()
-                            },
+                            "match": {"line": i + 1, "content": line.rstrip()},
                             "after": [
                                 {"line": i + j + 2, "content": lines[i + j + 1].rstrip()}
                                 for j in range(end_line - i - 1)
                             ],
                         }
 
-                        results.append({
-                            "file": file_path,
-                            "line": i + 1,
-                            "context": context if context_lines > 0 else None,
-                            "content": line.rstrip(),
-                        })
+                        results.append(
+                            {
+                                "file": file_path,
+                                "line": i + 1,
+                                "context": context if context_lines > 0 else None,
+                                "content": line.rstrip(),
+                            }
+                        )
 
                         result_count += 1
 
