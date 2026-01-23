@@ -12,12 +12,14 @@ from mcp.types import Tool, TextContent, GetPromptResult, Prompt, PromptArgument
 from .indexer import CodebaseIndexer
 from .searcher import CodebaseSearcher
 from .cache import IndexCache
+from .interface import PeppyInterface
 
 
 # Initialize shared instances
 cache = IndexCache()
 indexer = CodebaseIndexer(cache)
 searcher = CodebaseSearcher(cache)
+interface = PeppyInterface(cache)
 
 # Create MCP server
 app = Server("peppy")
@@ -165,6 +167,218 @@ async def list_tools() -> list[Tool]:
             }
         ),
     ]
+
+
+@app.list_prompts()
+async def list_prompts() -> list[Prompt]:
+    """List available prompts for Siggy integration."""
+    return [
+        Prompt(
+            name="peppy-planning",
+            description="Get codebase information optimized for Siggy's planning phase. Returns overview, key classes, and entry points.",
+            arguments=[
+                PromptArgument(
+                    name="codebase_path",
+                    description="Path to the codebase root directory",
+                    required=True
+                ),
+                PromptArgument(
+                    name="focus_patterns",
+                    description="Comma-separated patterns to focus research on (optional)",
+                    required=False
+                ),
+            ]
+        ),
+        Prompt(
+            name="peppy-execution",
+            description="Get precise location information for Siggy's execution phase. Finds definitions and usages.",
+            arguments=[
+                PromptArgument(
+                    name="codebase_path",
+                    description="Path to the codebase root directory",
+                    required=True
+                ),
+                PromptArgument(
+                    name="target",
+                    description="Symbol or pattern to find for making changes",
+                    required=True
+                ),
+            ]
+        ),
+        Prompt(
+            name="peppy-verification",
+            description="Verify changes for Siggy's verification phase. Checks that expected symbols exist.",
+            arguments=[
+                PromptArgument(
+                    name="codebase_path",
+                    description="Path to the codebase root directory",
+                    required=True
+                ),
+                PromptArgument(
+                    name="expected_symbols",
+                    description="Comma-separated list of symbol names that should exist",
+                    required=False
+                ),
+            ]
+        ),
+        Prompt(
+            name="peppy-overview",
+            description="Get a compact codebase overview for quick understanding.",
+            arguments=[
+                PromptArgument(
+                    name="codebase_path",
+                    description="Path to the codebase root directory",
+                    required=True
+                ),
+            ]
+        ),
+    ]
+
+
+@app.get_prompt()
+async def get_prompt(name: str, arguments: dict[str, str] | None) -> GetPromptResult:
+    """Handle prompt requests."""
+    import json
+
+    arguments = arguments or {}
+
+    if name == "peppy-planning":
+        codebase_path = arguments.get("codebase_path", "")
+        focus_patterns = arguments.get("focus_patterns", "")
+
+        # Parse focus patterns
+        patterns = [p.strip() for p in focus_patterns.split(",") if p.strip()] if focus_patterns else None
+
+        # Ensure indexed
+        if not interface.is_indexed(codebase_path):
+            interface.index(codebase_path)
+
+        result = interface.for_planning(codebase_path, focus_patterns=patterns)
+
+        return GetPromptResult(
+            description="Codebase information for planning phase",
+            messages=[
+                PromptMessage(
+                    role="user",
+                    content=TextContent(
+                        type="text",
+                        text=f"# Peppy Planning Context\n\n"
+                             f"Use this information to create your PROMPT.md:\n\n"
+                             f"```json\n{json.dumps(result, indent=2)}\n```\n\n"
+                             f"## Key Points:\n"
+                             f"- Total files: {result['overview'].get('total_files', 'N/A')}\n"
+                             f"- Total symbols: {result['overview'].get('total_symbols', 'N/A')}\n"
+                             f"- Key classes: {len(result['key_classes'])}\n"
+                             f"- Entry points found: {len(result['key_functions'])}"
+                    )
+                )
+            ]
+        )
+
+    elif name == "peppy-execution":
+        codebase_path = arguments.get("codebase_path", "")
+        target = arguments.get("target", "")
+
+        if not target:
+            return GetPromptResult(
+                description="Error: target is required",
+                messages=[
+                    PromptMessage(
+                        role="user",
+                        content=TextContent(type="text", text="Error: 'target' argument is required")
+                    )
+                ]
+            )
+
+        # Ensure indexed
+        if not interface.is_indexed(codebase_path):
+            interface.index(codebase_path)
+
+        result = interface.for_execution(target, codebase_path)
+
+        definition_loc = result['definition']['file'] + ':' + str(result['definition']['line']) if result['definition'] else 'Not found'
+
+        return GetPromptResult(
+            description=f"Execution context for {target}",
+            messages=[
+                PromptMessage(
+                    role="user",
+                    content=TextContent(
+                        type="text",
+                        text=f"# Peppy Execution Context: {target}\n\n"
+                             f"**Definition:** {definition_loc}\n"
+                             f"**Usage count:** {result['usage_count']}\n\n"
+                             f"```json\n{json.dumps(result, indent=2)}\n```"
+                    )
+                )
+            ]
+        )
+
+    elif name == "peppy-verification":
+        codebase_path = arguments.get("codebase_path", "")
+        expected_symbols = arguments.get("expected_symbols", "")
+
+        # Parse expected symbols
+        symbols = [s.strip() for s in expected_symbols.split(",") if s.strip()] if expected_symbols else None
+
+        # Ensure indexed - force reindex for verification to get fresh data
+        interface.index(codebase_path, force=True)
+
+        result = interface.for_verification(expected_symbols=symbols, codebase=codebase_path)
+
+        # Build verification summary
+        summary_lines = ["# Peppy Verification Results\n"]
+
+        if symbols:
+            summary_lines.append("## Symbol Verification:")
+            for symbol, info in result['verification_results'].items():
+                status = "✓" if info['found'] else "✗"
+                location = info['location'] or "Not found"
+                summary_lines.append(f"  {status} {symbol}: {location}")
+
+        summary_lines.append(f"\n## Codebase Stats:")
+        summary_lines.append(f"  - Total files: {result['stats'].get('total_files', 'N/A')}")
+        summary_lines.append(f"  - Total symbols: {result['stats'].get('total_symbols', 'N/A')}")
+
+        return GetPromptResult(
+            description="Verification results",
+            messages=[
+                PromptMessage(
+                    role="user",
+                    content=TextContent(type="text", text="\n".join(summary_lines))
+                )
+            ]
+        )
+
+    elif name == "peppy-overview":
+        codebase_path = arguments.get("codebase_path", "")
+
+        # Ensure indexed
+        if not interface.is_indexed(codebase_path):
+            interface.index(codebase_path)
+
+        overview = interface.get_overview(codebase_path)
+
+        return GetPromptResult(
+            description="Codebase overview",
+            messages=[
+                PromptMessage(
+                    role="user",
+                    content=TextContent(type="text", text=overview)
+                )
+            ]
+        )
+
+    else:
+        return GetPromptResult(
+            description=f"Unknown prompt: {name}",
+            messages=[
+                PromptMessage(
+                    role="user",
+                    content=TextContent(type="text", text=f"Unknown prompt: {name}")
+                )
+            ]
+        )
 
 
 @app.call_tool()
