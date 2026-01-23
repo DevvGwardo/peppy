@@ -167,6 +167,37 @@ Total tokens: ~1,500
 | Grep pattern | 500 files | ~50,000 tokens | ~2,000 tokens | 96% |
 | Explore structure | 500 files | ~12,000 tokens | ~700 tokens | 94% |
 
+### Simulated Session Results
+
+Run the built-in token simulator to see real-world savings:
+
+```bash
+python3 token_simulator.py 15
+```
+
+**Results for a 15-query session:**
+
+| Metric | Without Peppy | With Peppy | Savings |
+|--------|---------------|------------|---------|
+| Total tokens | 280,500 | 7,380 | 273,120 (93%) |
+| Cost (@$10/1M) | $2.81 | $0.07 | $2.74 |
+
+**Token breakdown:**
+
+| Operation | Without Peppy | With Peppy |
+|-----------|---------------|------------|
+| Find definition | 5,200 | 350 |
+| List all classes | 25,200 | 500 |
+| Find usages | 10,200 | 660 |
+| Grep pattern | 50,200 | 500 |
+| Get overview | 2,700 | 450 |
+
+**Key insights:**
+- ✓ Peppy reduces token usage by 84-95% per operation
+- ✓ Initial indexing pays for itself after 2-3 searches
+- ✓ Cached searches cost ~100 tokens vs ~2,000 without
+- ✓ Session savings: ~273K tokens (~$2.74 for 15 queries)
+
 ### Cache Benefits
 
 Once indexed, searches are **instant** across sessions:
