@@ -1,8 +1,12 @@
 # Integrating Peppy with Siggy
 
+> **📌 Important:** This guide covers Siggy v1.10.0+. For detailed compatibility information about the new subagent-per-task model, see **[Siggy v1.10+ Compatibility Guide](SIGGY_V1.10_COMPATIBILITY.md)**.
+
 ## Overview
 
 **Peppy** (codebase indexing) + **Siggy** (workflow orchestration) = A powerful combination for complex coding tasks with massive token savings.
+
+**Perfect Synergy:** Siggy v1.10.0+ introduced a subagent-per-task execution model that works beautifully with Peppy's MCP server architecture. Each subagent gets fresh context but can still access Peppy's persistent index for instant code navigation.
 
 ### What Each Plugin Does
 
@@ -10,6 +14,16 @@
 |--------|---------|--------------|
 | **Peppy** | Codebase Intelligence | Fast symbol search, indexed grep, multi-language parsing, persistent cache |
 | **Siggy** | Workflow Orchestration | Task planning, persistent execution, automated verification, event logging |
+
+### Version Requirements
+
+| Component | Minimum Version | Recommended | Notes |
+|-----------|----------------|-------------|-------|
+| Peppy | v1.0.0+ | Latest | MCP server architecture |
+| Siggy | v1.9.0+ | v1.10.0+ | v1.10.0+ adds subagent-per-task model |
+| Claude Code | Latest | Latest | Required for MCP support |
+
+**Note:** Siggy v1.10.0+ is recommended for optimal integration. See [v1.10+ Compatibility Guide](SIGGY_V1.10_COMPATIBILITY.md) for details on the subagent model.
 
 ### Why Combine Them?
 

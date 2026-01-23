@@ -1,17 +1,24 @@
 # Peppy + Siggy Integration
 
+> **📌 Version Compatibility:** This integration is optimized for **Siggy v1.10.0+** with subagent-per-task execution. See **[v1.10+ Compatibility Guide](../../docs/SIGGY_V1.10_COMPATIBILITY.md)** for detailed architecture information.
+
 This directory contains Peppy-enhanced agents for use with the [Siggy plugin](https://github.com/DevvGwardo/siggy-plugin).
 
 ## What's Included
 
 ### Agents
 
-- **`agents/peppy-planner.md`** - Enhanced planner that uses Peppy for 70% faster codebase research
-- **`agents/peppy-executor.md`** - Enhanced executor that uses Peppy for 80% more efficient execution
+- **`agents/peppy-planner.md`** - Enhanced planner that uses Peppy for 70% faster codebase research (v1.10.0+ compatible)
+- **`agents/peppy-executor.md`** - Enhanced executor that uses Peppy for 80% more efficient execution (v1.10.0+ subagent model)
+
+### Hooks
+
+- **`hooks/peppy-session-start.sh`** - Auto-indexes codebase at session start (optional)
 
 ### Documentation
 
 - **`../../docs/SIGGY_INTEGRATION.md`** - Complete integration guide with examples, best practices, and token savings analysis
+- **`../../docs/SIGGY_V1.10_COMPATIBILITY.md`** - Siggy v1.10.0+ subagent model compatibility guide
 
 ## Quick Setup
 
