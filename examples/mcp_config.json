@@ -1,0 +1,10 @@
+{
+  "comment": "Add this configuration to your Claude Code MCP settings",
+  "mcpServers": {
+    "peppy": {
+      "command": "python",
+      "args": ["-m", "peppy.server"],
+      "env": {}
+    }
+  }
+}
