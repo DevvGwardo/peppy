@@ -424,7 +424,25 @@ Peppy works seamlessly with [Siggy](https://github.com/DevvGwardo/siggy-plugin),
 - **83% more efficient execution** - Precise location finding without reading multiple files
 - **65-75% overall token savings** - Dramatic reduction in API costs for complex workflows
 
-### Quick Integration
+### Quick Integration (Plugin Configuration)
+
+Enable Peppy as a plugin in your Siggy configuration:
+
+```yaml
+# .siggy.yml
+plugins:
+  peppy:
+    enabled: true
+    auto_index: true
+    use_enhanced_agents: true
+```
+
+That's it! Siggy will automatically:
+- Use Peppy-enhanced agents for planning and execution
+- Auto-index your codebase on session start
+- Provide 65-75% token savings on workflows
+
+### Manual Setup (Alternative)
 
 ```bash
 # 1. Install both plugins
@@ -433,22 +451,10 @@ pip install -e .  # Peppy
 
 # 2. Configure Peppy as MCP server (see above)
 
-# 3. Index your codebase
-index_codebase(path="/project")
-
-# 4. Run Siggy workflows (now Peppy-enhanced!)
-/siggy "Add authentication to API"
-```
-
-### Enhanced Agents
-
-Use our Peppy-aware Siggy agents for maximum efficiency:
-
-```bash
-# Copy enhanced agents to Siggy
+# 3. Copy enhanced agents to Siggy (optional)
 cp integrations/siggy/agents/* /path/to/siggy/.siggy/agents/
 
-# Configure Siggy to use them
+# 4. Configure Siggy to use them
 # Edit .siggy.yml:
 agents:
   planner: .siggy/agents/peppy-planner.md

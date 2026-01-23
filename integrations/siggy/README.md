@@ -2,40 +2,45 @@
 
 > **📌 Version Compatibility:** This integration is optimized for **Siggy v1.10.0+** with subagent-per-task execution. See **[v1.10+ Compatibility Guide](../../docs/SIGGY_V1.10_COMPATIBILITY.md)** for detailed architecture information.
 
-This directory contains Peppy-enhanced agents for use with the [Siggy plugin](https://github.com/DevvGwardo/siggy-plugin).
+This directory contains the Peppy plugin for [Siggy](https://github.com/DevvGwardo/siggy-plugin), enabling codebase indexing as a configurable feature within Siggy workflows.
 
 ## What's Included
 
+### Plugin Module
+
+- **`peppy_sigi_plugin.py`** - Python integration module for Siggy to load Peppy as a plugin
+
+### Configuration
+
+- **`config/siggy-peppy.example.yml`** - Example configuration to add to your `.siggy.yml`
+
 ### Agents
 
-- **`agents/peppy-planner.md`** - Enhanced planner that uses Peppy for 70% faster codebase research (v1.10.0+ compatible)
-- **`agents/peppy-executor.md`** - Enhanced executor that uses Peppy for 80% more efficient execution (v1.10.0+ subagent model)
+- **`agents/peppy-planner.md`** - Enhanced planner that uses Peppy for 70% faster codebase research
+- **`agents/peppy-executor.md`** - Enhanced executor that uses Peppy for 80% more efficient execution
 
 ### Hooks
 
-- **`hooks/peppy-session-start.sh`** - Auto-indexes codebase at session start (optional)
+- **`hooks/peppy-session-start.sh`** - Auto-indexes codebase at session start
 
 ### Documentation
 
-- **`../../docs/SIGGY_INTEGRATION.md`** - Complete integration guide with examples, best practices, and token savings analysis
-- **`../../docs/SIGGY_V1.10_COMPATIBILITY.md`** - Siggy v1.10.0+ subagent model compatibility guide
+- **`../../docs/SIGGY_INTEGRATION.md`** - Complete integration guide
+- **`../../docs/SIGGY_V1.10_COMPATIBILITY.md`** - Siggy v1.10.0+ compatibility guide
 
-## Quick Setup
+## Quick Setup (Plugin Configuration)
 
-### 1. Install Both Plugins
+### 1. Install Peppy
 
 ```bash
-# Install Peppy
-cd /path/to/peppy
-pip install -e .
-
-# Install Siggy
-# Follow Siggy's installation instructions from their repo
+pip install peppy
+# Or from source:
+pip install -e /path/to/peppy
 ```
 
-### 2. Configure Peppy as MCP Server
+### 2. Configure Peppy MCP Server
 
-Add to your Claude Code MCP settings:
+Add to your Claude Code MCP settings (`~/.config/claude-code/mcp_settings.json`):
 
 ```json
 {
@@ -48,27 +53,68 @@ Add to your Claude Code MCP settings:
 }
 ```
 
-### 3. Use Enhanced Agents (Optional)
+### 3. Enable Peppy in .siggy.yml
 
-Copy the enhanced agents to your Siggy installation:
+Add the Peppy plugin configuration to your project's `.siggy.yml`:
+
+```yaml
+# .siggy.yml
+plugins:
+  peppy:
+    enabled: true
+    auto_index: true
+    use_enhanced_agents: true
+```
+
+That's it! Siggy will now automatically:
+- Use Peppy-enhanced agents for planning and execution
+- Auto-index your codebase on session start
+- Provide 65-75% token savings on workflows
+
+### Full Configuration Options
+
+```yaml
+plugins:
+  peppy:
+    # Enable/disable Peppy integration
+    enabled: true
+
+    # Auto-index codebase on session start
+    auto_index: true
+
+    # Path to index (relative or absolute)
+    index_path: "."
+
+    # Paths to exclude from indexing
+    exclude_patterns:
+      - "node_modules/**"
+      - ".git/**"
+      - "dist/**"
+
+    # Re-index interval in minutes (0 = once per session)
+    reindex_interval: 60
+
+    # Use Peppy-enhanced agents automatically
+    use_enhanced_agents: true
+
+    # Custom agent paths (optional)
+    # agents:
+    #   planner: ".siggy/agents/my-peppy-planner.md"
+    #   executor: ".siggy/agents/my-peppy-executor.md"
+```
+
+## Alternative: Manual Agent Setup
+
+If you prefer manual control, copy the enhanced agents:
 
 ```bash
 # Copy Peppy-enhanced agents to your Siggy agents directory
-cp integrations/siggy/agents/* /path/to/siggy-plugin/.siggy/agents/
+cp /path/to/peppy/integrations/siggy/agents/* .siggy/agents/
 
-# Or symlink them
-ln -s /path/to/peppy/integrations/siggy/agents/peppy-planner.md \
-      /path/to/siggy-plugin/.siggy/agents/peppy-planner.md
-```
-
-### 4. Configure Siggy to Use Peppy Agents
-
-Edit your `.siggy.yml`:
-
-```yaml
+# Configure in .siggy.yml
 agents:
-  planner: .siggy/agents/peppy-planner.md  # Use Peppy-enhanced planner
-  executor: .siggy/agents/peppy-executor.md  # Use Peppy-enhanced executor
+  planner: .siggy/agents/peppy-planner.md
+  executor: .siggy/agents/peppy-executor.md
 ```
 
 ## Basic Usage

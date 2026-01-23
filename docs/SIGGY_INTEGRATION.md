@@ -38,9 +38,48 @@
 3. **Verification Phase**: Siggy's Verifier checks completed work
    - ✅ With Peppy: Quick structure validation and symbol checks
 
+## Quick Start: Enable Peppy in Siggy
+
+The simplest way to integrate Peppy with Siggy is through the plugin configuration:
+
+### Step 1: Install Peppy
+```bash
+pip install peppy
+```
+
+### Step 2: Add Peppy MCP Server
+Add to your Claude Code MCP settings:
+```json
+{
+  "mcpServers": {
+    "peppy": {
+      "command": "python",
+      "args": ["-m", "peppy.server"]
+    }
+  }
+}
+```
+
+### Step 3: Enable in .siggy.yml
+```yaml
+plugins:
+  peppy:
+    enabled: true
+    auto_index: true
+    use_enhanced_agents: true
+```
+
+### Step 4: Use Siggy as Normal
+```bash
+/siggy "Add authentication to API"
+# Peppy is now active - 65-75% token savings!
+```
+
+---
+
 ## Integration Approaches
 
-### Approach 1: MCP Server Integration (Recommended)
+### Approach 1: Plugin Configuration (Recommended)
 
 Run Peppy as an MCP server alongside Siggy, so Siggy's agents can use Peppy's tools.
 
