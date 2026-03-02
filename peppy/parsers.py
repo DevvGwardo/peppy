@@ -224,6 +224,7 @@ class CodeParser:
         # Walk the tree and extract symbols
         def walk_tree(node: "Node", parent_type: Optional[str] = None):
             node_type = node.type
+            child_parent_type = parent_type
 
             # Check for function definitions
             if node_type in [
@@ -248,9 +249,8 @@ class CodeParser:
             ]:
                 name_node = self._find_name_node(node)
                 if name_node:
-                    symbol_type = "class"
-                    symbols.append(self._create_symbol(name_node, symbol_type, file_path, code))
-                    parent_type = "class"
+                    symbols.append(self._create_symbol(name_node, "class", file_path, code))
+                child_parent_type = "class"
 
             # Check for interface/type definitions
             elif node_type == "interface_declaration":
@@ -264,7 +264,7 @@ class CodeParser:
 
             # Recurse into children
             for child in node.children:
-                walk_tree(child, parent_type)
+                walk_tree(child, child_parent_type)
 
         walk_tree(root_node)
         return symbols
