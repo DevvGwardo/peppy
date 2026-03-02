@@ -164,14 +164,14 @@ class CodebaseIndexer:
         self,
         path: Path,
         force_reindex: bool = False,
-        max_workers: int = 4
+        max_workers: Optional[int] = None
     ) -> Dict[str, Any]:
         """Index an entire codebase.
 
         Args:
             path: Root path of the codebase
             force_reindex: Force re-indexing even if cache exists
-            max_workers: Number of parallel workers for indexing
+            max_workers: Number of parallel workers for indexing (auto if None)
 
         Returns:
             Dictionary containing the complete index
@@ -186,6 +186,10 @@ class CodebaseIndexer:
                 return cached.get("index", {})
 
         print(f"Indexing codebase at {path}...")
+
+        if max_workers is None:
+            cpu_count = os.cpu_count() or 4
+            max_workers = max(2, min(32, cpu_count * 2))
 
         # Collect files
         files = self.collect_files(path)
@@ -204,12 +208,36 @@ class CodebaseIndexer:
                 except Exception as e:
                     print(f"Error indexing {file_path}: {e}")
 
+        # Build search acceleration maps
+        symbol_lookup = {}
+        symbol_type_lookup = {}
+
+        for file_info in file_indices:
+            file_path = file_info.get("path", "")
+            for symbol in file_info.get("symbols", []):
+                symbol_name = symbol.get("name", "")
+                symbol_type = symbol.get("type")
+                entry = {
+                    "name": symbol_name,
+                    "type": symbol_type,
+                    "file": file_path,
+                    "line": symbol.get("line"),
+                    "column": symbol.get("column"),
+                }
+
+                key = symbol_name.lower()
+                symbol_lookup.setdefault(key, []).append(entry)
+                if symbol_type:
+                    symbol_type_lookup.setdefault(symbol_type, []).append(entry)
+
         # Build the complete index
         index = {
             "root": str(path),
             "total_files": len(file_indices),
             "files": file_indices,
             "symbol_count": sum(len(f.get("symbols", [])) for f in file_indices),
+            "symbol_lookup": symbol_lookup,
+            "symbol_type_lookup": symbol_type_lookup,
         }
 
         # Cache the index
