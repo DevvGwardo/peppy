@@ -48,4 +48,4 @@ line-length = 100
 target-version = "py310"
 
 [project.scripts]
-peppy = "peppy.server:main"
+peppy = "peppy.server:run"
