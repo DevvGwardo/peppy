@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Callable
 from enum import Enum
+import re
 
 from .indexer import CodebaseIndexer
 from .searcher import CodebaseSearcher
@@ -249,7 +250,8 @@ class PeppyInterface:
         Returns:
             SearchResult or None if not found
         """
-        results = self.find_symbols(f"^{name}$", codebase=codebase, limit=1)
+        escaped = re.escape(name)
+        results = self.find_symbols(f"^{escaped}$", codebase=codebase, limit=1)
         return results[0] if results else None
 
     def find_classes(
@@ -397,7 +399,7 @@ class PeppyInterface:
             List of GrepResult objects showing usages
         """
         # Create pattern that matches the name as a word boundary
-        pattern = rf"\b{name}\b"
+        pattern = rf"\b{re.escape(name)}\b"
         return self.grep(
             pattern,
             codebase=codebase,
