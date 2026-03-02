@@ -57,7 +57,7 @@ class TestPythonParsing:
 
         classes = [s for s in symbols if s.type == "class"]
         assert len(classes) >= 1
-        classes[0].name == "Calculator"
+        assert classes[0].name == "Calculator"
 
     def test_python_nested_classes(self, sample_codebase):
         """Deeply nested class structures."""
