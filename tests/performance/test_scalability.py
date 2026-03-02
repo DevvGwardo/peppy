@@ -46,8 +46,8 @@ class TestSmallCodebase:
         tmpdir = Path(tempfile.mkdtemp())
         (tmpdir / "test.py").write_text("def target(): pass", encoding="utf-8")
 
-        indexer = CodebaseIndexer()
         cache = IndexCache()
+        indexer = CodebaseIndexer(cache)
         searcher = CodebaseSearcher(cache)
 
         indexer.index_codebase(tmpdir)
@@ -91,8 +91,8 @@ class TestMediumCodebase:
             test_file = tmpdir / f"file{i}.py"
             test_file.write_text(f"def test{i}(): pass\nclass Test{i}: pass", encoding="utf-8")
 
-        indexer = CodebaseIndexer()
         cache = IndexCache()
+        indexer = CodebaseIndexer(cache)
         searcher = CodebaseSearcher(cache)
 
         indexer.index_codebase(tmpdir)
@@ -136,8 +136,8 @@ class TestLargeCodebase:
             test_file = tmpdir / f"file{i}.py"
             test_file.write_text(f"def test{i}(): pass", encoding="utf-8")
 
-        indexer = CodebaseIndexer()
         cache = IndexCache()
+        indexer = CodebaseIndexer(cache)
         searcher = CodebaseSearcher(cache)
 
         indexer.index_codebase(tmpdir)
@@ -189,8 +189,8 @@ class TestMemoryUsage:
             test_file = tmpdir / f"file{i}.py"
             test_file.write_text(f"def test{i}(): pass\n" * 100, encoding="utf-8")
 
-        indexer = CodebaseIndexer()
         cache = IndexCache()
+        indexer = CodebaseIndexer(cache)
         searcher = CodebaseSearcher(cache)
 
         indexer.index_codebase(tmpdir)
