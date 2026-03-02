@@ -73,6 +73,13 @@ async def list_tools() -> list[Tool]:
                         "description": "Treat query as regex pattern",
                         "default": True,
                     },
+                    "max_results": {
+                        "type": "integer",
+                        "description": "Maximum number of symbols to return",
+                        "default": 100,
+                        "minimum": 1,
+                        "maximum": 1000,
+                    },
                 },
                 "required": ["codebase_path", "query"],
             },
@@ -414,6 +421,7 @@ async def call_tool(name: str, arguments: Any) -> Sequence[TextContent]:
             symbol_type = arguments.get("symbol_type")
             file_pattern = arguments.get("file_pattern")
             use_regex = arguments.get("use_regex", True)
+            max_results = arguments.get("max_results", 100)
 
             results = searcher.search_symbols(
                 codebase_path,
@@ -421,6 +429,7 @@ async def call_tool(name: str, arguments: Any) -> Sequence[TextContent]:
                 symbol_type=symbol_type,
                 file_pattern=file_pattern,
                 use_regex=use_regex,
+                max_results=max_results,
             )
 
             if not results:
