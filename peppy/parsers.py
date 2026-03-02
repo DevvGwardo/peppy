@@ -199,7 +199,7 @@ class CodeParser:
             parser = self.parsers[language]
             tree = parser.parse(code)
 
-            return self._extract_symbols(tree.root_node, code.decode("utf-8"), file_path, language)
+            return self._extract_symbols(tree.root_node, code.decode("utf-8", errors="replace"), file_path, language)
 
         except Exception as e:
             print(f"Warning: Failed to parse {file_path}: {e}")
