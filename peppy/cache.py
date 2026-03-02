@@ -11,6 +11,59 @@ from datetime import datetime
 class IndexCache:
     """Manages caching of codebase indices."""
 
+    @staticmethod
+    def _build_manifest_from_index(index_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Build a lightweight manifest from index data for freshness checks."""
+        files = index_data.get("files", [])
+        entries = [
+            {
+                "path": f.get("path"),
+                "modified": f.get("modified"),
+                "size": f.get("size"),
+            }
+            for f in files
+            if f.get("path")
+        ]
+        return {
+            "file_count": len(entries),
+            "total_size": sum((e.get("size") or 0) for e in entries),
+            "entries": entries,
+        }
+
+    @staticmethod
+    def _is_cache_fresh(data: Dict[str, Any]) -> bool:
+        """Validate cache by comparing stored file manifest against filesystem."""
+        codebase_path = Path(data.get("path", ""))
+        if not codebase_path.exists():
+            return False
+
+        manifest = data.get("manifest")
+        if not manifest:
+            # Backward compatibility with old cache entries: treat as stale.
+            return False
+
+        entries = manifest.get("entries", [])
+        if manifest.get("file_count") != len(entries):
+            return False
+
+        for entry in entries:
+            file_path = Path(entry.get("path", ""))
+            if not file_path.exists():
+                return False
+            try:
+                stats = file_path.stat()
+            except OSError:
+                return False
+
+            if entry.get("size") != stats.st_size:
+                return False
+
+            cached_mtime = entry.get("modified")
+            if cached_mtime is None or abs(float(cached_mtime) - float(stats.st_mtime)) > 1e-6:
+                return False
+
+        return True
+
     def __init__(self, cache_dir: Optional[Path] = None):
         """Initialize the cache manager.
 
@@ -66,11 +119,8 @@ class IndexCache:
                 data = json.load(f)
 
             # Check if cache is still valid
-            cached_time = datetime.fromisoformat(data.get("timestamp", ""))
-            codebase_path = Path(data.get("path", ""))
-
-            # Simple validation: check if path still exists
-            if not codebase_path.exists():
+            _ = datetime.fromisoformat(data.get("timestamp", ""))
+            if not self._is_cache_fresh(data):
                 return None
 
             return data
@@ -93,6 +143,7 @@ class IndexCache:
         cache_entry = {
             "path": str(path.resolve()),
             "timestamp": datetime.now().isoformat(),
+            "manifest": self._build_manifest_from_index(index_data),
             "index": index_data,
         }
 
