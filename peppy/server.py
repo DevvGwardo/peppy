@@ -396,7 +396,7 @@ async def call_tool(name: str, arguments: Any) -> Sequence[TextContent]:
                 return [TextContent(type="text", text=f"Error: Path is not a directory: {path}")]
 
             # Run indexing (in thread pool to avoid blocking)
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             index = await loop.run_in_executor(None, indexer.index_codebase, path, force_reindex)
 
             return [
