@@ -33,6 +33,20 @@ class CodebaseSearcher:
             return cached.get("index")
         return None
 
+    @staticmethod
+    def _match_file_pattern(root: Path, file_path: str, file_pattern: Optional[str]) -> bool:
+        """Match file patterns against relative and absolute paths."""
+        if not file_pattern:
+            return True
+
+        absolute = Path(file_path)
+        try:
+            relative = str(absolute.resolve().relative_to(root.resolve()))
+        except Exception:
+            relative = file_path
+
+        return fnmatch.fnmatch(relative, file_pattern) or fnmatch.fnmatch(file_path, file_pattern)
+
     def search_symbols(
         self,
         codebase_path: Path,
@@ -68,11 +82,43 @@ class CodebaseSearcher:
 
         results = []
 
+        # Fast path: use precomputed lookup tables if available.
+        symbol_lookup = index.get("symbol_lookup", {})
+        symbol_type_lookup = index.get("symbol_type_lookup", {})
+
+        if symbol_lookup and not use_regex:
+            q = query.lower()
+            candidates = []
+            for name_key, entries in symbol_lookup.items():
+                if q in name_key:
+                    candidates.extend(entries)
+
+            for entry in candidates:
+                if symbol_type and entry.get("type") != symbol_type:
+                    continue
+                if not self._match_file_pattern(Path(index.get("root", codebase_path)), entry.get("file", ""), file_pattern):
+                    continue
+                results.append(entry)
+
+            return results
+
+        # Fallback path: iterate over symbol_type buckets or all files.
+        if symbol_type and symbol_type in symbol_type_lookup:
+            candidates = symbol_type_lookup[symbol_type]
+            for entry in candidates:
+                if not self._match_file_pattern(Path(index.get("root", codebase_path)), entry.get("file", ""), file_pattern):
+                    continue
+                name = entry.get("name", "")
+                matches = pattern.search(name) is not None if (use_regex and pattern) else query.lower() in name.lower()
+                if matches:
+                    results.append(entry)
+            return results
+
         for file_info in index.get("files", []):
             file_path = file_info.get("path", "")
 
             # Apply file pattern filter
-            if file_pattern and not fnmatch.fnmatch(file_path, file_pattern):
+            if not self._match_file_pattern(Path(index.get("root", codebase_path)), file_path, file_pattern):
                 continue
 
             # Search symbols in this file
@@ -179,7 +225,7 @@ class CodebaseSearcher:
             file_path = file_info.get("path", "")
 
             # Apply file pattern filter
-            if file_pattern and not fnmatch.fnmatch(file_path, file_pattern):
+            if not self._match_file_pattern(Path(index.get("root", codebase_path)), file_path, file_pattern):
                 continue
 
             # Read file and search
