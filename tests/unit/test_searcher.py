@@ -137,9 +137,14 @@ class TestSymbolSearch:
             },
         )
 
-        results = searcher.search_symbols(sample_codebase, "func.*", file_pattern="*.py")
+        results = searcher.search_symbols(
+            sample_codebase,
+            "func.*",
+            file_pattern="*.py",
+            max_results=3,
+        )
 
-        assert len(results) == 10
+        assert len(results) == 3
         assert "test.py" in results[0]["file"]
 
 
@@ -339,6 +344,33 @@ class TestFileOperations:
         results = searcher.get_file_symbols(tmp_path, "nonexistent.py")
 
         assert len(results) == 0
+
+    def test_get_file_symbols_relative_to_codebase(self, tmp_path):
+        """Relative file path resolves against codebase root."""
+        cache = IndexCache()
+        searcher = CodebaseSearcher(cache)
+
+        src = tmp_path / "src"
+        src.mkdir(parents=True, exist_ok=True)
+        file_path = src / "mod.py"
+        file_path.write_text("def ok():\n    pass\n", encoding="utf-8")
+
+        cache.set(
+            tmp_path,
+            {
+                "root": str(tmp_path),
+                "files": [
+                    {
+                        "path": str(file_path),
+                        "symbols": [{"name": "ok", "type": "function", "line": 1, "column": 4}],
+                    }
+                ],
+            },
+        )
+
+        symbols = searcher.get_file_symbols(tmp_path, "src/mod.py")
+        assert len(symbols) == 1
+        assert symbols[0]["name"] == "ok"
 
     def test_nonexistent_file(self, sample_codebase):
         """Returns empty gracefully."""
