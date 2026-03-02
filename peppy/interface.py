@@ -221,7 +221,8 @@ class PeppyInterface:
             query,
             symbol_type=symbol_type,
             file_pattern=file_pattern,
-            use_regex=True
+            use_regex=True,
+            max_results=limit,
         )
 
         return [
@@ -232,7 +233,7 @@ class PeppyInterface:
                 line=r["line"],
                 column=r.get("column", 0),
             )
-            for r in results[:limit]
+            for r in results
         ]
 
     def find_definition(
@@ -538,10 +539,10 @@ class PeppyInterface:
         # Add key entry points
         lines.extend(["", "## Key Entry Points:"])
 
-        # Find main/index files
-        main_patterns = ["main", "index", "app", "server", "cli"]
+        # Find main/index files with tight per-pattern caps for token efficiency
+        main_patterns = ["^main$", "^index$", "^app$", "^server$", "^cli$"]
         for pattern in main_patterns:
-            results = self.find_functions(pattern, codebase=str(codebase_path), limit=5)
+            results = self.find_functions(pattern, codebase=str(codebase_path), limit=3)
             for r in results:
                 lines.append(f"  {r.name}: {r.to_location()}")
 
@@ -715,20 +716,18 @@ class PeppyInterface:
 
     def _make_stats(self, index: Dict[str, Any]) -> CodebaseStats:
         """Create CodebaseStats from an index dictionary."""
-        # Count symbols by type
-        symbol_types: Dict[str, int] = {}
-        file_extensions: Dict[str, int] = {}
+        symbol_types: Dict[str, int] = index.get("symbol_types") or {}
+        file_extensions: Dict[str, int] = index.get("file_extensions") or {}
 
-        for file_info in index.get("files", []):
-            # Count file extensions
-            file_path = file_info.get("path", "")
-            ext = Path(file_path).suffix
-            file_extensions[ext] = file_extensions.get(ext, 0) + 1
+        if not symbol_types or not file_extensions:
+            for file_info in index.get("files", []):
+                file_path = file_info.get("path", "")
+                ext = Path(file_path).suffix
+                file_extensions[ext] = file_extensions.get(ext, 0) + 1
 
-            # Count symbol types
-            for symbol in file_info.get("symbols", []):
-                sym_type = symbol.get("type", "unknown")
-                symbol_types[sym_type] = symbol_types.get(sym_type, 0) + 1
+                for symbol in file_info.get("symbols", []):
+                    sym_type = symbol.get("type", "unknown")
+                    symbol_types[sym_type] = symbol_types.get(sym_type, 0) + 1
 
         return CodebaseStats(
             root=index.get("root", ""),
