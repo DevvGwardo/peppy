@@ -57,7 +57,7 @@ class TestPythonParsing:
 
         classes = [s for s in symbols if s.type == "class"]
         assert len(classes) >= 1
-        classes[0].name == "Calculator"
+        assert classes[0].name == "Calculator"
 
     def test_python_nested_classes(self, sample_codebase):
         """Deeply nested class structures."""
@@ -77,7 +77,7 @@ class TestPythonParsing:
         symbols = parser.parse_file(str(file_path))
 
         assert any(s.name == "fetch_data" for s in symbols)
-        assert any("@staticmethod" or "@classmethod" for s in symbols or True)
+        assert any(s.type in {"function", "method"} for s in symbols)
 
 
 class TestJavaScriptParsing:
